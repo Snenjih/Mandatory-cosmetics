@@ -1,0 +1,85 @@
+---
+id: player-state-api
+sidebar_position: 3
+title: Player State API
+---
+
+# Player State API
+
+How equipped cosmetics are shared between players.
+
+## Primary Method: Fabric Custom Packets
+
+The mod uses **Fabric Custom Packets** as the primary mechanism for sharing cosmetic state.
+
+### How it works
+
+```
+Player A joins Minecraft server
+    ↓
+CosmeticNetworkHandler.sendSelf()
+    → ClientPlayNetworking.send(CosmeticPayload)
+    → Packet: { uuid: A, equipped: { cape: "cape_gradient", hat: null, ... } }
+
+All other clients with MandatoryMod receive the packet
+    ↓
+CosmeticNetworkHandler.handleIncoming()
+    → CosmeticRegistry.setOtherPlayer(uuid, data)
+    → CosmeticFeatureRenderer sees this on next render frame
+```
+
+### Packet Format
+
+`CosmeticPayload` (custom `CustomPayload`):
+```
+Channel ID: mandatory:cosmetics
+
+Fields (written to PacketByteBuf):
+  UUID (16 bytes)
+  Map size (varint)
+  For each entry:
+    type key (string)      e.g. "cape", "hat", "wings"
+    cosmetic id (string)   e.g. "cape_gradient" or "" for none
+```
+
+### Re-broadcast on new player join
+
+When a new player joins, existing players re-send their own state:
+```java
+ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+    // Slight delay to ensure connection is established
+    client.execute(() -> CosmeticNetworkHandler.sendSelf());
+});
+```
+
+### Limitations
+
+- Requires the Minecraft server to allow custom packet channels
+- Vanilla servers always allow this ✓
+- Most modded servers allow this ✓
+- Some hardened anti-cheat servers may block unknown packets
+
+## Fallback: Cloudflare KV
+
+See [Cloudflare Proxy](./cloudflare-proxy) for the HTTP-based fallback.
+
+The mod checks `ClientPlayNetworking.canSend(CosmeticPayload.ID)` before sending. If the server blocks the packet channel, it falls back to the Cloudflare Worker API.
+
+## Local Storage
+
+Equipped cosmetics are stored locally in:
+```
+.minecraft/mandatory/cosmetics/equipped.json
+```
+
+```json
+{
+  "cape": "cape_gradient",
+  "hat": null,
+  "wings": "wings_angel",
+  "particles": null,
+  "armor_skin": null
+}
+```
+
+This file is written every time the player changes their cosmetics in the UI. It is **never sent to any server** — it's used for local state persistence.

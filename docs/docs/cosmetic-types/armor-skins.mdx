@@ -1,0 +1,69 @@
+---
+id: armor-skins
+sidebar_position: 5
+title: Armor Skins
+---
+
+# Armor Skins
+
+Armor skins replace the texture of the player's equipped armor without changing the model.
+
+## Texture Specifications
+
+Armor skin textures follow the **vanilla armor texture format**:
+
+| Texture | Dimensions | Covers |
+|---|---|---|
+| `layer_1.png` | 64×32 pixels | Helmet, Chestplate, Boots |
+| `layer_2.png` | 64×32 pixels | Leggings |
+
+Both files must be provided for a complete armor skin.
+
+## UV Layout
+
+The layout matches the vanilla `textures/models/armor/` format exactly:
+```
++--------+--------+
+| Helmet | Chest  |   Layer 1 (64×32)
++--------+--------+
+| Boots  |        |
++--------+--------+
+```
+
+:::tip
+Use [NovaSkin](https://novaskin.me/) or a resource pack editor to create armor textures visually.
+:::
+
+## File Naming
+
+```
+cosmetics/assets/armor_skins/<id>_layer_1.png
+cosmetics/assets/armor_skins/<id>_layer_2.png
+cosmetics/assets/armor_skins/<id>_preview.png
+```
+
+## Adding an Armor Skin to the Manifest
+
+Armor skins require two hash entries — use the `texture_url` for `layer_1` and a separate `extra` field:
+
+```json
+{
+  "id": "armor_mythic",
+  "type": "armor_skin",
+  "name": "Mythic Armor",
+  "description": "Legendary glowing armor skin.",
+  "version": 1,
+  "hash": "sha256:LAYER1_HASH",
+  "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/armor_skins/armor_mythic_layer_1.png",
+  "extra": {
+    "layer_2_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/armor_skins/armor_mythic_layer_2.png",
+    "layer_2_hash": "sha256:LAYER2_HASH"
+  },
+  "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/armor_skins/armor_mythic_preview.png",
+  "tags": ["default"]
+}
+```
+
+## How it renders in-game
+
+`ArmorSkinRenderer` (a Fabric FeatureRenderer) intercepts the armor rendering and substitutes the vanilla armor texture with the custom one. Only affects the player wearing the cosmetic.

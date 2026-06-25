@@ -1,0 +1,152 @@
+---
+id: cloudflare-proxy
+sidebar_position: 2
+title: Cloudflare Proxy (Optional)
+---
+
+# Cloudflare Proxy — Optional Player State API
+
+:::info Optional Feature
+This is only needed for **multiplayer cosmetic visibility as a fallback**. The primary method is Fabric Custom Packets, which works on any server. Use the Cloudflare proxy only if Custom Packets are blocked.
+:::
+
+## Why?
+
+The Fabric Custom Packets approach (sending equipped cosmetics to other players on join) requires that the Minecraft server allows custom packet types to pass through. Some servers block unknown packet types.
+
+The Cloudflare proxy provides an alternative: each client registers its equipped cosmetics with a central API, and other clients poll it.
+
+## Architecture
+
+```
+Client A equipped cape_gradient
+    ↓  PUT /player/{uuid}/equipped
+Cloudflare Worker (KV store)
+    ↓  GET /player/{uuid}/equipped
+Client B sees Client A's cape
+```
+
+## Setup
+
+### Prerequisites
+
+- Cloudflare account (free tier works)
+- `wrangler` CLI installed: `npm install -g wrangler`
+
+### Step 1: Create a KV namespace
+
+```bash
+wrangler kv:namespace create "COSMETICS_PLAYER_STATE"
+```
+
+Copy the `id` from the output.
+
+### Step 2: Create the Worker
+
+Create `cloudflare-worker/index.js`:
+
+```javascript
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Player-Token',
+};
+
+export default {
+  async fetch(request, env) {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: CORS_HEADERS });
+    }
+
+    const url = new URL(request.url);
+    const match = url.pathname.match(/^\/player\/([0-9a-f-]{36})\/equipped$/i);
+
+    if (!match) {
+      return new Response('Not found', { status: 404, headers: CORS_HEADERS });
+    }
+
+    const uuid = match[1].toLowerCase();
+    const key = `player:${uuid}:equipped`;
+
+    if (request.method === 'GET') {
+      const value = await env.COSMETICS_PLAYER_STATE.get(key);
+      if (!value) {
+        return new Response('{}', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        });
+      }
+      return new Response(value, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      });
+    }
+
+    if (request.method === 'PUT') {
+      // Validate token (simple auth)
+      const token = request.headers.get('X-Player-Token');
+      const storedToken = await env.COSMETICS_PLAYER_STATE.get(`token:${uuid}`);
+
+      if (!storedToken) {
+        // First time — store the token
+        if (!token || token.length < 32) {
+          return new Response('Bad token', { status: 400, headers: CORS_HEADERS });
+        }
+        await env.COSMETICS_PLAYER_STATE.put(`token:${uuid}`, token);
+      } else if (token !== storedToken) {
+        return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
+      }
+
+      const body = await request.text();
+      // Validate JSON
+      try { JSON.parse(body); } catch {
+        return new Response('Invalid JSON', { status: 400, headers: CORS_HEADERS });
+      }
+
+      // Store with 24h TTL (player considered offline after 24h)
+      await env.COSMETICS_PLAYER_STATE.put(key, body, { expirationTtl: 86400 });
+      return new Response('OK', { status: 200, headers: CORS_HEADERS });
+    }
+
+    return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
+  },
+};
+```
+
+### Step 3: wrangler.toml
+
+```toml
+name = "mandatory-cosmetics-proxy"
+main = "cloudflare-worker/index.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "COSMETICS_PLAYER_STATE"
+id = "YOUR_KV_NAMESPACE_ID"
+```
+
+### Step 4: Deploy
+
+```bash
+wrangler deploy
+```
+
+Your Worker URL: `https://mandatory-cosmetics-proxy.YOUR_SUBDOMAIN.workers.dev`
+
+## Client Integration
+
+In `MandatoryMod`, set the proxy URL in `CosmeticNetworkHandler`:
+
+```java
+// Fallback to Cloudflare if Custom Packets unavailable
+if (!ClientPlayNetworking.canSend(CosmeticPayload.ID)) {
+    CloudflarePlayerStateClient.pushEquipped(playerUuid, equipped);
+}
+```
+
+## Security Notes
+
+- The auth token is generated once per client and stored locally — never send it over unencrypted connections
+- The Worker validates tokens to prevent one player from spoofing another's cosmetics
+- Cloudflare KV has a 24h TTL — data is auto-cleaned for offline players
+- Rate limiting: Cloudflare's free tier includes 100k requests/day — more than enough for a small community

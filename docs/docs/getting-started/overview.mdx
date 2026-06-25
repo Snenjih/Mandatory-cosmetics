@@ -1,0 +1,54 @@
+---
+id: overview
+sidebar_position: 1
+title: System Overview
+---
+
+# System Overview
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│           Mandatory-cosmetics (GitHub Pages)        │
+│   cosmetics/manifest.json  (catalog + hashes)       │
+│   cosmetics/assets/**      (textures + models)      │
+└──────────────┬──────────────────────────────────────┘
+               │ HTTPS on mod startup
+┌──────────────▼──────────────────────────────────────┐
+│              MandatoryMod (Client)                  │
+│   CosmeticSyncService   →  delta download           │
+│   CosmeticStorage       →  local file cache         │
+│   CosmeticRegistry      →  in-memory state          │
+│   CosmeticFeatureRenderer → renders on players      │
+│                                                     │
+│   Fabric Custom Packets → shares state with other   │
+│   players on the same Minecraft server              │
+└─────────────────────────────────────────────────────┘
+```
+
+## Components
+
+### Asset Server (this repo)
+- **`manifest.json`** — lists every available cosmetic with its SHA256 hash and download URL
+- **`assets/`** — the actual texture/model files
+- **GitHub Pages** — serves everything as static HTTPS content
+
+### Mod Client (MandatoryMod)
+- **`CosmeticSyncService`** — async delta sync on every mod startup
+- **`CosmeticStorage`** — caches assets in `.minecraft/mandatory/cosmetics/`
+- **`CosmeticRegistry`** — in-memory list of available and equipped cosmetics
+- **`CosmeticFeatureRenderer`** — renders cosmetics on player entities
+
+### Multiplayer
+- Uses **Fabric Custom Packets** (`CustomPayload` + `ClientPlayNetworking`)
+- On world join, client broadcasts its equipped cosmetics to all other clients
+- Other clients with the mod receive and render accordingly
+- Works on any Minecraft server — vanilla, Paper, etc.
+
+## Adding New Cosmetics
+
+1. Add the texture file to `cosmetics/assets/<type>/`
+2. Update `cosmetics/manifest.json` with the new entry and correct SHA256 hash
+3. Commit and push — GitHub Pages deploys automatically
+4. On next mod startup, all clients download the new asset

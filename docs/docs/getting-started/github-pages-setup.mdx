@@ -1,0 +1,102 @@
+---
+id: github-pages-setup
+sidebar_position: 2
+title: GitHub Pages Setup
+---
+
+# GitHub Pages Setup
+
+## Prerequisites
+
+- GitHub account
+- `gh` CLI installed (`brew install gh` or [install guide](https://cli.github.com/))
+
+## Step 1: Fork or clone this repository
+
+```bash
+gh repo fork Snenjih/Mandatory-cosmetics --clone
+cd Mandatory-cosmetics
+```
+
+Or create from scratch:
+```bash
+mkdir my-cosmetics-server
+cd my-cosmetics-server
+git init
+git branch -m main
+```
+
+## Step 2: Configure GitHub Pages
+
+### Via GitHub UI
+1. Go to your repo → **Settings** → **Pages**
+2. Under **Source**, select **GitHub Actions**
+3. Save
+
+### Via gh CLI
+```bash
+gh api repos/YOUR_USERNAME/YOUR_REPO/pages \
+  --method POST \
+  --field build_type='workflow'
+```
+
+## Step 3: Update the workflow
+
+The `.github/workflows/pages.yml` file deploys the repo root to GitHub Pages on every push to `main`. No changes needed — it works out of the box.
+
+## Step 4: Update the manifest base_url
+
+Edit `cosmetics/manifest.json` and update the `base_url`:
+
+```json
+{
+  "_schema": 2,
+  "base_url": "https://YOUR_USERNAME.github.io/YOUR_REPO/cosmetics",
+  ...
+}
+```
+
+## Step 5: Update the mod's manifest URL
+
+In `MandatoryMod`, update `CosmeticSyncService.MANIFEST_URL`:
+
+```java
+public static final String MANIFEST_URL =
+    "https://YOUR_USERNAME.github.io/YOUR_REPO/cosmetics/manifest.json";
+```
+
+## Step 6: Push and verify
+
+```bash
+git add .
+git commit -m "feat: initial cosmetics setup"
+git push origin main
+```
+
+After ~30 seconds, your manifest will be available at:
+```
+https://YOUR_USERNAME.github.io/YOUR_REPO/cosmetics/manifest.json
+```
+
+## Updating cosmetics
+
+1. Add/change files in `cosmetics/assets/`
+2. Update `manifest.json` with new SHA256 hashes and incremented `version` numbers
+3. Commit and push — clients auto-update on next startup
+
+### Computing SHA256 hashes
+
+**Linux/Mac:**
+```bash
+sha256sum cosmetics/assets/capes/my_cape.png
+```
+
+**Windows (PowerShell):**
+```powershell
+Get-FileHash cosmetics\assets\capes\my_cape.png -Algorithm SHA256
+```
+
+The hash in `manifest.json` must be prefixed with `sha256:`:
+```json
+"hash": "sha256:abc123..."
+```

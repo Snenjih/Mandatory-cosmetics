@@ -1,0 +1,58 @@
+---
+id: wings
+sidebar_position: 3
+title: Wings
+---
+
+# Wings
+
+Wings are rendered as two mirrored quad panels attached to the player's back.
+
+## Texture Specifications
+
+| Property | Value |
+|---|---|
+| Dimensions | 32×16 pixels |
+| Format | PNG (RGBA) |
+| Layout | Left wing on left half (0-15), mirrored for right |
+
+```
++----------------+----------------+
+|   Left Wing    |  Right Wing    |
+|   (0,0)-(15,15)|  (16,0)-(31,15)|
++----------------+----------------+
+```
+
+The right wing texture is the mirror image of the left — the renderer automatically mirrors it.
+
+## File Naming
+
+```
+cosmetics/assets/wings/<id>.png
+cosmetics/assets/wings/<id>_preview.png
+```
+
+## Adding Wings to the Manifest
+
+```json
+{
+  "id": "wings_angel",
+  "type": "wings",
+  "name": "Angel Wings",
+  "description": "Radiant white wings.",
+  "version": 1,
+  "hash": "sha256:YOUR_HASH_HERE",
+  "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/wings/wings_angel.png",
+  "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/wings/wings_angel_preview.png",
+  "tags": ["default"]
+}
+```
+
+## Animation
+
+Wings have a subtle idle animation: a sin-curve applied to the Y-rotation of each panel, creating a gentle flap. The amplitude and frequency are fixed in `WingsRenderer`.
+
+## Notes
+
+- Wings are hidden when the player is flying with Elytra
+- Wings are visible in third-person view only

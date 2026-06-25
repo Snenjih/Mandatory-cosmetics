@@ -1,0 +1,107 @@
+---
+id: manifest-format
+sidebar_position: 1
+title: Manifest Format
+---
+
+# Manifest Format Reference
+
+The `manifest.json` file is the single source of truth for all available cosmetics.
+
+## URL
+
+```
+https://snenjih.github.io/Mandatory-cosmetics/cosmetics/manifest.json
+```
+
+## Schema (Version 2)
+
+```json
+{
+  "_schema": 2,
+  "_generated": "2026-06-25T12:00:00Z",
+  "base_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics",
+  "cosmetics": [
+    {
+      "id": "cape_gradient",
+      "type": "cape",
+      "name": "Gradient Cape",
+      "description": "A flowing gradient cape.",
+      "version": 1,
+      "hash": "sha256:a29487126ad11359855aca35f981925db11bada42f3cd3e13fca1a6368c058e8",
+      "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient.png",
+      "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient_preview.png",
+      "tags": ["default"]
+    }
+  ]
+}
+```
+
+## Field Reference
+
+### Root fields
+
+| Field | Type | Description |
+|---|---|---|
+| `_schema` | Integer | Schema version, currently `2` |
+| `_generated` | String | ISO 8601 timestamp of last update |
+| `base_url` | String | Base URL prefix for relative asset URLs |
+| `cosmetics` | Array | List of cosmetic entries |
+
+### Cosmetic entry fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | String | ✓ | Unique identifier (snake_case) |
+| `type` | String | ✓ | One of: `cape`, `hat`, `wings`, `particles`, `armor_skin` |
+| `name` | String | ✓ | Display name shown in the cosmetics menu |
+| `description` | String | ✓ | Short description (1–2 sentences) |
+| `version` | Integer | ✓ | Increment when asset changes to force re-download |
+| `hash` | String | ✓ | `sha256:` prefixed hex digest of the primary texture file |
+| `texture_url` | String | ✓ | Full HTTPS URL to the primary texture/descriptor file |
+| `preview_url` | String or null | | Full HTTPS URL to a preview image for the UI |
+| `tags` | Array\<String\> | | Optional tags for filtering (`default`, `premium`, etc.) |
+| `extra` | Object | | Type-specific extra fields (e.g. armor skin layer 2) |
+
+## Delta Sync Algorithm
+
+The mod implements a git-like delta sync:
+
+```
+startup:
+  local_cache = load manifest_cache.json   // id → hash
+  server_manifest = GET manifest.json
+
+  for entry in server_manifest.cosmetics:
+    if entry.hash != local_cache[entry.id]:
+      download(entry.texture_url)
+      verify SHA256
+      write to disk
+      update local_cache[entry.id]
+
+  for id in local_cache:
+    if id NOT in server_manifest:
+      delete local file
+      remove from local_cache
+
+  save manifest_cache.json
+```
+
+## Versioning Strategy
+
+- Increment `version` every time you change a cosmetic's assets
+- The `hash` field is the authoritative change indicator (version is informational)
+- Never reuse an `id` for a different cosmetic — changing the type of an existing ID is not supported
+
+## Removing a Cosmetic
+
+Simply remove its entry from `manifest.json`. The mod will delete the cached file on next sync. Players who had it equipped will have that slot set to `null` automatically.
+
+## Schema Evolution
+
+When the root `_schema` field increases, the mod handles migration:
+
+| Schema | Changes |
+|---|---|
+| `1` | Original flat format (deprecated) |
+| `2` | Nested objects with `base_url` and `extra` support |

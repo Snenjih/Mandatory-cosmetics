@@ -1,0 +1,75 @@
+---
+id: hats
+sidebar_position: 2
+title: Hats
+---
+
+# Hats
+
+Hats are 3D models rendered on top of the player's head using a Fabric `FeatureRenderer`.
+
+## Texture Specifications
+
+| Property | Value |
+|---|---|
+| Dimensions | 16×16 pixels (minimum), or 32×32 for higher detail |
+| Format | PNG (RGBA) |
+| Layout | 6-face cube UV map |
+
+## UV Layout (16×16)
+
+```
+      [top]
+[left][front][right][back]
+      [bottom]
+```
+
+For a 16×16 texture (each face is 4×4):
+```
+     4   4   4   4
+ ┌───┬───┬───┬───┐  4
+ │top│   │   │   │
+ ├───┼───┼───┼───┤  4
+ │ L │ F │ R │ B │
+ ├───┼───┼───┼───┤  4
+ │bot│   │   │   │
+ └───┴───┴───┴───┘  4
+```
+
+## File Naming
+
+```
+cosmetics/assets/hats/<id>.png
+cosmetics/assets/hats/<id>_preview.png
+```
+
+## Adding a Hat to the Manifest
+
+```json
+{
+  "id": "hat_crown",
+  "type": "hat",
+  "name": "Golden Crown",
+  "description": "A shiny golden crown.",
+  "version": 1,
+  "hash": "sha256:YOUR_HASH_HERE",
+  "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/hats/hat_crown.png",
+  "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/hats/hat_crown_preview.png",
+  "tags": ["default"]
+}
+```
+
+## Size & Position
+
+The hat is rendered as a 16×16×16 voxel cube centered on top of the player's head. The renderer translates 8/16 units up from the head origin before drawing.
+
+Hat dimensions are standardized to match the player's head size (8 voxel units).
+
+## How it renders in-game
+
+`HatRenderer` extends `FeatureRenderer` registered via `LivingEntityFeatureRendererRegistrationCallback.EVENT`. In `render()`:
+1. Push matrix
+2. Translate to head position
+3. Scale to hat size
+4. Draw textured cube via `VertexConsumer`
+5. Pop matrix

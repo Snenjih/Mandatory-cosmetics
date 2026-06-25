@@ -1,0 +1,80 @@
+---
+id: particles
+sidebar_position: 4
+title: Particles
+---
+
+# Particles
+
+Particles emit around the player from a JSON descriptor file (no texture required).
+
+## Descriptor Format
+
+Unlike other cosmetics, particles use a **JSON descriptor** instead of a PNG:
+
+```json
+{
+  "id": "particle_star",
+  "particle_type": "END_ROD",
+  "color": null,
+  "rate": 3,
+  "radius": 0.8,
+  "height_offset": 1.0,
+  "spread": 0.3
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `particle_type` | String | Vanilla particle type ID (e.g. `END_ROD`, `FLAME`, `HEART`, `SNOWFLAKE`) |
+| `color` | Integer or null | ARGB tint for colorable particles (null = default color) |
+| `rate` | Integer | Max particles emitted per tick (1–10) |
+| `radius` | Float | Spawn radius around player (0.1–2.0) |
+| `height_offset` | Float | Vertical offset from player feet (0.0–2.0) |
+| `spread` | Float | Random velocity spread (0.0–1.0) |
+
+## File Naming
+
+Particle descriptors are JSON files:
+```
+cosmetics/assets/particles/<id>.json
+```
+
+Example: `cosmetics/assets/particles/particle_star.json`
+
+## Adding Particles to the Manifest
+
+```json
+{
+  "id": "particle_star",
+  "type": "particles",
+  "name": "Star Trail",
+  "description": "Sparkly star particles trail behind you.",
+  "version": 1,
+  "hash": "sha256:YOUR_HASH_HERE",
+  "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/particles/particle_star.json",
+  "preview_url": null,
+  "tags": ["default"]
+}
+```
+
+Note: `texture_url` points to the JSON descriptor, not a PNG. `preview_url` is optional for particles.
+
+## Supported Particle Types
+
+Any vanilla Minecraft particle type works. Common choices:
+
+| Particle ID | Appearance |
+|---|---|
+| `END_ROD` | White sparkles |
+| `FLAME` | Fire particles |
+| `HEART` | Pink hearts |
+| `SNOWFLAKE` | Snow particles |
+| `PORTAL` | Purple portal particles |
+| `WITCH` | Magic sparkles |
+| `DRIPPING_LAVA` | Lava drips |
+| `HAPPY_VILLAGER` | Green sparkles |
+
+## Performance Note
+
+The mod throttles particles to `rate` particles per tick maximum. Keep `rate` ≤ 5 to avoid client-side lag.

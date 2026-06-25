@@ -1,0 +1,43 @@
+---
+id: intro
+slug: /
+sidebar_position: 1
+title: Introduction
+---
+
+# Mandatory Cosmetics
+
+Welcome to the **Mandatory Cosmetics** documentation. This system provides a server-based cosmetics delivery pipeline for the [Mandatory Mod](https://github.com/Snenjih/Mandatory) — a client-side Fabric mod for Minecraft 1.21.11.
+
+## What is this?
+
+Mandatory Cosmetics is a **static asset server** hosted on GitHub Pages that delivers cosmetic assets (capes, hats, wings, particles, armor skins) to mod clients. The mod fetches a `manifest.json` on startup and performs a **delta sync** — only downloading assets that are new or changed.
+
+## Key Features
+
+- **Zero server infrastructure** — everything is static files on GitHub Pages
+- **Delta sync** — clients only download what changed (git-like approach)
+- **Multiplayer visibility** — cosmetics are shared between players via Fabric Custom Packets
+- **5 cosmetic types** — Capes, Hats, Wings, Particles, Armor Skins
+
+## How it works
+
+```
+Mod starts
+    ↓
+Fetch manifest.json from GitHub Pages
+    ↓
+Compare hashes with local cache
+    ↓
+Download only new/changed assets
+    ↓
+Player sees their cosmetics in-game
+    ↓
+Other players with the mod see your cosmetics via Fabric networking
+```
+
+## Quick Start
+
+1. [Set up your own GitHub Pages server](./getting-started/github-pages-setup)
+2. [Understand the manifest format](./infrastructure/manifest-format)
+3. [Add your first cosmetic](./cosmetic-types/capes)

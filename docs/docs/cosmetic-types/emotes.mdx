@@ -1,0 +1,52 @@
+---
+id: emotes
+sidebar_position: 6
+title: Emotes (Coming Soon)
+---
+
+# Emotes
+
+:::caution Work in Progress
+Emotes are the most complex cosmetic type and are planned for a future release.
+:::
+
+## What are Emotes?
+
+Emotes are custom player animations — wave, dance, bow, etc. — triggered by the player.
+
+## Planned Implementation
+
+Emotes require a custom animation system. The planned approach uses **GeckoLib** as a dependency for bone-based model animation.
+
+### GeckoLib Integration (Planned)
+
+[GeckoLib](https://github.com/bernie-g/geckolib) provides:
+- JSON-based animation files (`.geo.json` for model, `.animation.json` for animations)
+- Smooth bone animations on any entity
+- Existing Fabric support
+
+### Descriptor Format (Draft)
+
+```json
+{
+  "id": "emote_wave",
+  "model_url": "https://example.com/cosmetics/assets/emotes/emote_wave.geo.json",
+  "animation_url": "https://example.com/cosmetics/assets/emotes/emote_wave.animation.json",
+  "duration_ticks": 40,
+  "loop": false
+}
+```
+
+### Trigger Mechanism (Planned)
+
+- Keybind to trigger emote (configurable in mod settings)
+- Broadcast via Custom Packet to all players on the server
+- Animation plays once and returns to idle
+
+## Why Not Yet?
+
+- Requires adding GeckoLib as a runtime dependency
+- Animation blending with player movement is complex
+- Mod currently has no dependency on GeckoLib
+
+Emotes will be added in a future update once the core cosmetics system is stable.

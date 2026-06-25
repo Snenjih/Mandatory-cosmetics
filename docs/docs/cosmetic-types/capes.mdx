@@ -1,0 +1,76 @@
+---
+id: capes
+sidebar_position: 1
+title: Capes
+---
+
+# Capes
+
+Capes are flat textures rendered behind the player, replacing or layering over vanilla capes.
+
+## Texture Specifications
+
+| Property | Value |
+|---|---|
+| Dimensions | 64×32 pixels |
+| Format | PNG (RGBA) |
+| Color mode | 32-bit with alpha |
+| Cape area | x:1 y:1 → x:10 y:16 (body), x:12 y:1 → x:19 y:16 (back) |
+
+The UV layout follows the **vanilla Minecraft cape format**:
+```
++------------------+
+|    cape_back     |  ← This is what you see in-game
+|  (12,1)-(19,16) |
++------------------+
+|    cape_front    |
+|  (1,1)-(10,16)  |
++------------------+
+```
+
+## File Naming
+
+Place your texture at:
+```
+cosmetics/assets/capes/<id>.png
+cosmetics/assets/capes/<id>_preview.png   (optional, for UI preview)
+```
+
+Example: `cosmetics/assets/capes/cape_gradient.png`
+
+## Adding a Cape to the Manifest
+
+```json
+{
+  "id": "cape_gradient",
+  "type": "cape",
+  "name": "Gradient Cape",
+  "description": "A flowing gradient cape.",
+  "version": 1,
+  "hash": "sha256:YOUR_HASH_HERE",
+  "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient.png",
+  "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient_preview.png",
+  "tags": ["default"]
+}
+```
+
+## Computing the hash
+
+```bash
+sha256sum cosmetics/assets/capes/cape_gradient.png | awk '{print "sha256:" $1}'
+```
+
+## Updating a Cape
+
+1. Replace the texture file with the new version
+2. Increment `version` in `manifest.json` (e.g. `1` → `2`)
+3. Update the `hash` with the new SHA256
+4. Commit and push
+
+Clients will re-download the cape on next startup because the hash changed.
+
+## How it renders in-game
+
+The mod's `CapeRenderer` uses `LivingEntityFeatureRenderEvents.ALLOW_CAPE_RENDER` to suppress the vanilla cape and render the custom one. The custom cape uses the same geometry as the vanilla cape.
+
+**Note:** If the player is wearing an Elytra, the custom cape is hidden (same as vanilla behavior).
