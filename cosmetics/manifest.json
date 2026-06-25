@@ -1,0 +1,40 @@
+{
+  "_schema": 2,
+  "_generated": "2026-06-25T12:00:00Z",
+  "base_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics",
+  "cosmetics": [
+    {
+      "id": "cape_gradient",
+      "type": "cape",
+      "name": "Gradient Cape",
+      "description": "A flowing gradient cape with smooth color transitions.",
+      "version": 1,
+      "hash": "sha256:a29487126ad11359855aca35f981925db11bada42f3cd3e13fca1a6368c058e8",
+      "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient.png",
+      "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/capes/cape_gradient_preview.png",
+      "tags": ["default"]
+    },
+    {
+      "id": "hat_crown",
+      "type": "hat",
+      "name": "Golden Crown",
+      "description": "A shiny golden crown fit for royalty.",
+      "version": 1,
+      "hash": "sha256:a29487126ad11359855aca35f981925db11bada42f3cd3e13fca1a6368c058e8",
+      "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/hats/hat_crown.png",
+      "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/hats/hat_crown_preview.png",
+      "tags": ["default"]
+    },
+    {
+      "id": "wings_angel",
+      "type": "wings",
+      "name": "Angel Wings",
+      "description": "Radiant white angel wings.",
+      "version": 1,
+      "hash": "sha256:a29487126ad11359855aca35f981925db11bada42f3cd3e13fca1a6368c058e8",
+      "texture_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/wings/wings_angel.png",
+      "preview_url": "https://snenjih.github.io/Mandatory-cosmetics/cosmetics/assets/wings/wings_angel_preview.png",
+      "tags": ["default"]
+    }
+  ]
+}
